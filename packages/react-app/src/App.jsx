@@ -1,5 +1,6 @@
 import { Button, Col, Menu, Row } from "antd";
 import "antd/dist/antd.css";
+import Dex from "./components/Dex";
 import {
   useBalance,
   useContractLoader,
@@ -14,6 +15,7 @@ import { Link, Route, Switch, useLocation } from "react-router-dom";
 import "./App.css";
 import {
   Account,
+  Events,
   Contract,
   Faucet,
   GasGauge,
@@ -260,6 +262,9 @@ function App(props) {
         <Menu.Item key="/">
           <Link to="/">App Home</Link>
         </Menu.Item>
+        <Menu.Item key="/event">
+          <Link to="/event">Event List</Link>
+        </Menu.Item>
         <Menu.Item key="/debug">
           <Link to="/debug">Debug Contracts</Link>
         </Menu.Item>
@@ -267,9 +272,35 @@ function App(props) {
 
       <Switch>
         <Route exact path="/">
-
+          {readContracts && readContracts.DEX && address && localProvider ? (
+            <Dex
+              tx={tx}
+              writeContracts={writeContracts}
+              localProvider={localProvider}
+              mainnetProvider={mainnetProvider}
+              blockExplorer={blockExplorer}
+              address={address} //this is causing issues
+              readContracts={readContracts} //this is causing issues
+              contractConfig={contractConfig}
+              signer={userSigner}
+              price={price}
+            />
+          ) : (
+            ""
+          )}
         </Route>
-        
+
+        <Route exact path="/event">
+          <Events
+            contracts={readContracts}
+            contractName="YourContract"
+            eventName="SetPurpose"
+            localProvider={localProvider}
+            mainnetProvider={mainnetProvider}
+            startBlock={1}
+          />
+        </Route>
+
         <Route exact path="/debug">
           {/*
                 🎛 this scaffolding is full of commonly used components
