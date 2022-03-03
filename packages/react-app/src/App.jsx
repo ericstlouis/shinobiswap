@@ -134,7 +134,7 @@ function App(props) {
 
   // For more hooks, check out 🔗eth-hooks at: https://www.npmjs.com/package/eth-hooks
 
-  // The transactor wraps transactions and provides notificiations
+  // The transactor wraps transactions and provides notifications
   const tx = Transactor(userSigner, gasPrice);
 
   // 🏗 scaffold-eth is full of handy hooks like this one to get your balance:
@@ -274,6 +274,7 @@ function App(props) {
         <Route exact path="/">
           {readContracts && readContracts.DEX && address && localProvider ? (
             <Dex
+              key={1}
               tx={tx}
               writeContracts={writeContracts}
               localProvider={localProvider}
@@ -393,9 +394,7 @@ function App(props) {
               /*  if the local provider has a signer, let's show the faucet:  */
               faucetAvailable ? (
                 <Faucet localProvider={localProvider} price={price} ensProvider={mainnetProvider} />
-              ) : (
-                ""
-              )
+              ) : null
             }
           </Col>
         </Row>

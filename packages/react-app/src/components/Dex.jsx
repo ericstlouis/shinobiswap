@@ -1,11 +1,12 @@
-import { Card, Col, Divider, Input, Row } from "antd";
+import { Statistic, Card, Col, Divider, Input, Row } from "antd";
 import { useBalance, useContractReader, useBlockNumber } from "eth-hooks";
 import { useEventListener } from "eth-hooks/events/useEventListener";
 import { useTokenBalance } from "eth-hooks/erc/erc-20/useTokenBalance";
 import { ethers } from "ethers";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Address from "./Address";
-import Contract from "./Contract";
+//Contract component not actually deployed contract
+import Contract from "./Contract";  
 // import Curve from "./Curve";
 import TokenBalance from "./TokenBalance";
 import Blockies from "react-blockies";
@@ -18,6 +19,10 @@ export default function Dex(props) {
 
   const [form, setForm] = useState({});
   const [values, setValues] = useState({});
+  const [shareOfPool, setShareOfPool] = useState();
+  const [ethToShinobi, setEthToShinobi] = useState();
+  const [ShinobiToEth, setShinobiToEth] = useState();
+
   const tx = props.tx;
 
   const writeContracts = props.writeContracts;
@@ -25,16 +30,28 @@ export default function Dex(props) {
   const contractAddress = props.readContracts[contractName].address;
   const tokenAddress = props.readContracts[tokenName].address;
   const contractBalance = useBalance(props.localProvider, contractAddress);
-  
+
   const tokenBalance = useTokenBalance(props.readContracts[tokenName], contractAddress, props.localProvider);
   const tokenBalanceFloat = parseFloat(ethers.utils.formatEther(tokenBalance));
   const ethBalanceFloat = parseFloat(ethers.utils.formatEther(contractBalance));
   const liquidity = useContractReader(props.readContracts, contractName, "totalLiquidity");
+  // const userLiquidity = useContractReader(props.readContracts, contractName, "liquidity", [props.address]);
+
+
+  const PoolShare = async () => {
+    const dexLiquidity = ethers.utils.formatEther(contractBalance);
+    // const user = ethers.utils.formatEther(userLiquidity);
+    // console.log(user);
+  };
+
+  useEffect(() => {
+    PoolShare();
+  }, [contractBalance])
 
   const rowForm = (title, icon, onClick) => {
     return (
       <Row>
-        <Col span={8} style={{ textAlign: "right", opacity: 0.333, paddingRight: 6, fontSize: 24 }}>
+        <Col span={8} style={{ textAlign: "right", opacity: 0.333, paddingRight: 10, fontSize: 24 }}>
           {title}
         </Col>
         <Col span={16}>
@@ -43,6 +60,7 @@ export default function Dex(props) {
               onChange={e => {
                 let newValues = { ...values };
                 newValues[title] = e.target.value;
+                console.log(newValues);
                 setValues(newValues);
               }}
               value={values[title]}
@@ -66,7 +84,7 @@ export default function Dex(props) {
     );
   };
 
-  if (props.readContracts && props.readContracts[contractName]) {
+  if (props.readContracts ? props.readContracts[contractName] : null) {
     display.push(
       <div>
         {rowForm("ethToToken", "💸", async value => {
@@ -74,7 +92,6 @@ export default function Dex(props) {
           let swapEthToTokenResult = await tx(writeContracts[contractName]["ethToToken"]({ value: valueInEther }));
           console.log("swapEthToTokenResult:", swapEthToTokenResult);
         })}
-
         {rowForm("tokenToEth", "🔏", async value => {
           let valueInEther = ethers.utils.parseEther("" + value);
           console.log("valueInEther", valueInEther);
@@ -102,9 +119,7 @@ export default function Dex(props) {
           let swapTxResult = await swapTx;
           console.log("swapTxResult:", swapTxResult);
         })}
-
         <Divider> Liquidity ({liquidity ? ethers.utils.formatEther(liquidity) : "none"}):</Divider>
-
         {rowForm("deposit", "📥", async value => {
           let valueInEther = ethers.utils.parseEther("" + value);
           let valuePlusExtra = ethers.utils.parseEther("" + value * 1.03);
@@ -123,18 +138,28 @@ export default function Dex(props) {
           }
           await tx(writeContracts[contractName]["deposit"]({ value: valueInEther, gasLimit: 200000 }));
         })}
-
         {rowForm("withdraw", "📤", async value => {
           let valueInEther = ethers.utils.parseEther("" + value);
           let withdrawTxResult = await tx(writeContracts[contractName]["withdraw"](valueInEther));
           console.log("withdrawTxResult:", withdrawTxResult);
         })}
+        <Row>
+          <Col span={9}>
+            <Statistic title="Shinobi per ETH" value={11.28} precision={2} valueStyle={{ color: "#3f8600" }} />
+          </Col>
+          <Col span={6}>
+            <Statistic title="Share of Pool" value={4.98} precision={2} valueStyle={{ color: "#3f8600" }} suffix="%" />
+          </Col>
+          <Col span={9}>
+            <Statistic title="ETH per Shinobi" value={9.3} precision={2} valueStyle={{ color: "#3f8600" }} />
+          </Col>
+        </Row>
       </div>,
     );
   }
 
   return (
-    <Row span={24}>
+    <Row span={24} style={{ display: "flex", alignItems: "center", flexDirection: "column-reverse"}}>
       <Col span={12}>
         <Card
           title={
@@ -151,7 +176,7 @@ export default function Dex(props) {
         >
           {display}
         </Card>
-        <Row span={12}>
+        {/* <Row span={12}>
           <Contract
             name="Shinobi"
             signer={props.signer}
@@ -161,7 +186,7 @@ export default function Dex(props) {
             blockExplorer={props.blockExplorer}
             contractConfig={props.contractConfig}
           />
-        </Row>
+        </Row> */}
       </Col>
       <Col span={12}>
         <div style={{ padding: 20 }}>
