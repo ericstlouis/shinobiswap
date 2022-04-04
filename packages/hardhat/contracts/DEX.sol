@@ -20,8 +20,6 @@ contract DEX {
                _;
           }
      }
-     //EVENTS
-
 
      //Functions
      constructor(address token_addr) public {
@@ -59,6 +57,10 @@ contract DEX {
           require(token.transferFrom(msg.sender, address(this), tokens));
           return eth_bought;
      }
+
+      function fetchLiquidity(address lp) public view returns (uint256) {
+        return liquidity[lp];
+    }
 
      function deposit() public payable returns (uint256) {
           uint256 eth_reserve = address(this).balance.sub(msg.value);

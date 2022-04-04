@@ -38,7 +38,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
 
   // paste in your front-end address here to get 10 balloons on deploy:
   await shinobi.transfer(
-    "0x2D54066e43FdB8a0E0451f92807D8f18ff5cc5AE",
+    "0x5eea165f6cedde9573d1152e6dd9b410e9290e90",
     "" + 10 * 10 ** 18
   );
 
@@ -49,9 +49,13 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   // If you are going to the testnet make sure your deployer account has enough ETH
   await shinobi.approve(dex.address, ethers.utils.parseEther("100"));
   console.log("INIT exchange...");
-  await dex.init(ethers.utils.parseEther("5"), {
-    value: ethers.utils.parseEther("5"),
+  await dex.init(ethers.utils.parseEther("1"), {
+    value: ethers.utils.parseEther("1"),
+    gasLimit: 200000,
   });
-  console.log('...INIT SUCCESSFUL!!!✅');
+  console.log("...INIT SUCCESSFUL!!!✅");
 };
 module.exports.tags = ["Balloons", "DEX"];
+
+
+

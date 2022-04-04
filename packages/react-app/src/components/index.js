@@ -2,6 +2,7 @@ export { default as Account } from "./Account";
 export { default as Address } from "./Address";
 export { default as AddressInput } from "./AddressInput";
 export { default as Balance } from "./Balance";
+export { default as Dex } from "./Dex";
 export { default as Blockie } from "./Blockie";
 export { default as BytesStringInput } from "./BytesStringInput";
 export { default as Contract } from "./Contract";
@@ -23,3 +24,4 @@ export { default as FaucetHint } from "./FaucetHint";
 export { default as NetworkSwitch } from "./NetworkSwitch";
 export { default as MultiAddressInput } from "./MultiAddressInput";
 export { default as TokenSelect } from "./TokenSelect";
+

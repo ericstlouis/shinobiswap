@@ -19,9 +19,10 @@ export default function Dex(props) {
 
   const [form, setForm] = useState({});
   const [values, setValues] = useState({});
-  const [shareOfPool, setShareOfPool] = useState();
-  const [ethToShinobi, setEthToShinobi] = useState();
-  const [ShinobiToEth, setShinobiToEth] = useState();
+  const [shareOfPool, setShareOfPool] = useState(0);
+  const [ethToShinobi, setEthToShinobi] = useState(0);
+  const [ShinobiToEth, setShinobiToEth] = useState(0);
+  const [userLiquidity, setUserLiquidity] = useState(0);
 
   const tx = props.tx;
 
@@ -35,18 +36,45 @@ export default function Dex(props) {
   const tokenBalanceFloat = parseFloat(ethers.utils.formatEther(tokenBalance));
   const ethBalanceFloat = parseFloat(ethers.utils.formatEther(contractBalance));
   const liquidity = useContractReader(props.readContracts, contractName, "totalLiquidity");
-  // const userLiquidity = useContractReader(props.readContracts, contractName, "liquidity", [props.address]);
+
+  async function fetchUserLiquidty() {
+    const userBalance = await props.readContracts[contractName].liquidity(props.address);
+    const number = parseFloat(ethers.utils.formatEther(userBalance)).toFixed(2);
+    setUserLiquidity(prevState => number);
+  }
+
+  const ethToToken = () => {
+       const amountOfEth = parseFloat(ethers.utils.formatEther(contractBalance));
+       const amountOfTokens = tokenBalanceFloat;
+       const worth = 1 * 0.997;
+       const tokenPrice =((worth * amountOfTokens) / amountOfEth).toFixed(2);
+       setEthToShinobi(prevState => tokenPrice);
+  }
 
 
-  const PoolShare = async () => {
-    const dexLiquidity = ethers.utils.formatEther(contractBalance);
-    // const user = ethers.utils.formatEther(userLiquidity);
-    // console.log(user);
-  };
+  const tokenToETH = () => {
+    const amountOfEth = parseFloat(ethers.utils.formatEther(contractBalance));
+    const amountOfTokens = tokenBalanceFloat;
+    const worth = 1 * 0.997;
+    const tokenPrice = ((worth * amountOfEth) / amountOfTokens).toFixed(2);
+    setShinobiToEth(prevState => tokenPrice);
+    console.log(amountOfEth);
+    console.log(amountOfTokens);
+  }
+
+  const poolPercent = () => {
+    const contractLiquidity = ethBalanceFloat;
+    const pool = (userLiquidity / contractLiquidity) * 100;
+    setShareOfPool(prevState => pool);
+  }
 
   useEffect(() => {
-    PoolShare();
-  }, [contractBalance])
+      tokenToETH();
+      ethToToken();
+      poolPercent();
+      fetchUserLiquidty();
+
+  }, [userLiquidity, ethBalanceFloat, tokenBalance]);
 
   const rowForm = (title, icon, onClick) => {
     return (
@@ -60,7 +88,7 @@ export default function Dex(props) {
               onChange={e => {
                 let newValues = { ...values };
                 newValues[title] = e.target.value;
-                console.log(newValues);
+                console.log(ethers.utils.formatEther(liquidity));
                 setValues(newValues);
               }}
               value={values[title]}
@@ -120,6 +148,7 @@ export default function Dex(props) {
           console.log("swapTxResult:", swapTxResult);
         })}
         <Divider> Liquidity ({liquidity ? ethers.utils.formatEther(liquidity) : "none"}):</Divider>
+
         {rowForm("deposit", "📥", async value => {
           let valueInEther = ethers.utils.parseEther("" + value);
           let valuePlusExtra = ethers.utils.parseEther("" + value * 1.03);
@@ -145,13 +174,13 @@ export default function Dex(props) {
         })}
         <Row>
           <Col span={9}>
-            <Statistic title="Shinobi per ETH" value={11.28} precision={2} valueStyle={{ color: "#3f8600" }} />
+            <Statistic title="Shinobi per ETH" value={ShinobiToEth} precision={2} valueStyle={{ color: "#3f8600" }} />
           </Col>
           <Col span={6}>
-            <Statistic title="Share of Pool" value={4.98} precision={2} valueStyle={{ color: "#3f8600" }} suffix="%" />
+            <Statistic title="Share of Pool" value={shareOfPool} precision={2} valueStyle={{ color: "#3f8600" }} suffix="%" />
           </Col>
           <Col span={9}>
-            <Statistic title="ETH per Shinobi" value={9.3} precision={2} valueStyle={{ color: "#3f8600" }} />
+            <Statistic title="ETH per Shinobi" value={ethToShinobi} precision={2} valueStyle={{ color: "#3f8600" }} />
           </Col>
         </Row>
       </div>,
@@ -159,7 +188,7 @@ export default function Dex(props) {
   }
 
   return (
-    <Row span={24} style={{ display: "flex", alignItems: "center", flexDirection: "column-reverse"}}>
+    <Row span={24} style={{ display: "flex", alignItems: "center", flexDirection: "column-reverse" }}>
       <Col span={12}>
         <Card
           title={
@@ -176,7 +205,7 @@ export default function Dex(props) {
         >
           {display}
         </Card>
-        {/* <Row span={12}>
+        <Row span={12}>
           <Contract
             name="Shinobi"
             signer={props.signer}
@@ -186,7 +215,7 @@ export default function Dex(props) {
             blockExplorer={props.blockExplorer}
             contractConfig={props.contractConfig}
           />
-        </Row> */}
+        </Row>
       </Col>
       <Col span={12}>
         <div style={{ padding: 20 }}>

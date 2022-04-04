@@ -1,6 +1,5 @@
 import { Button, Col, Menu, Row } from "antd";
 import "antd/dist/antd.css";
-import Dex from "./components/Dex";
 import {
   useBalance,
   useContractLoader,
@@ -15,6 +14,7 @@ import { Link, Route, Switch, useLocation } from "react-router-dom";
 import "./App.css";
 import {
   Account,
+  Dex,
   Events,
   Contract,
   Faucet,
@@ -22,6 +22,7 @@ import {
   Header,
   Ramp,
   ThemeSwitch,
+  TokenBalance,
   NetworkDisplay,
   FaucetHint,
   NetworkSwitch,
@@ -55,7 +56,7 @@ const { ethers } = require("ethers");
 */
 
 /// 📡 What chain are your contracts deployed to?
-const initialNetwork = NETWORKS.localhost; // <------- select your target frontend network (localhost, rinkeby, xdai, mainnet)
+const initialNetwork = NETWORKS.rinkeby; // <------- select your target frontend network (localhost, rinkeby, xdai, mainnet)
 
 // 😬 Sorry for all the console logging
 const DEBUG = true;
@@ -246,6 +247,9 @@ function App(props) {
 
   const faucetAvailable = localProvider && localProvider.connection && targetNetwork.name.indexOf("local") !== -1;
 
+  const liquidity = useContractReader(readContracts, "DEX", "fetchLiquidity", [address]);
+  console.log(liquidity);
+
   return (
     <div className="App">
       {/* ✏️ Edit the header and change the title to your project name */}
@@ -261,9 +265,6 @@ function App(props) {
       <Menu style={{ textAlign: "center", marginTop: 40 }} selectedKeys={[location.pathname]} mode="horizontal">
         <Menu.Item key="/">
           <Link to="/">App Home</Link>
-        </Menu.Item>
-        <Menu.Item key="/event">
-          <Link to="/event">Event List</Link>
         </Menu.Item>
         <Menu.Item key="/debug">
           <Link to="/debug">Debug Contracts</Link>
@@ -291,16 +292,7 @@ function App(props) {
           )}
         </Route>
 
-        <Route exact path="/event">
-          <Events
-            contracts={readContracts}
-            contractName="YourContract"
-            eventName="SetPurpose"
-            localProvider={localProvider}
-            mainnetProvider={mainnetProvider}
-            startBlock={1}
-          />
-        </Route>
+      
 
         <Route exact path="/debug">
           {/*
@@ -318,6 +310,7 @@ function App(props) {
             blockExplorer={blockExplorer}
             contractConfig={contractConfig}
           />
+
           <Contract
             name="Shinobi"
             price={price}
@@ -360,6 +353,10 @@ function App(props) {
         {yourLocalBalance.lte(ethers.BigNumber.from("0")) && (
           <FaucetHint localProvider={localProvider} targetNetwork={targetNetwork} address={address} />
         )}
+        <TokenBalance name={"Shinobi"} img={"⚔️"} address={address} contracts={readContracts} />
+        <h3>
+          ⚖️: <TokenBalance balance={liquidity} />
+        </h3>
       </div>
 
       {/* 🗺 Extra UI like gas price, eth price, faucet, and support: */}
